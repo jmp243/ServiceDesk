@@ -36,8 +36,12 @@ KPI <- read.csv("keyindicators_did.csv", header = TRUE, na.strings=c("","NA"))
 
 LiveAgent <- read.csv("LiveAgentSession.csv", header = TRUE, na.strings=c("","NA"))
 
+# check the number of NA values
+sum(is.na(chat))
+
 # # change chat duration NA to 0
 # chat$ChatDuration[is.na(chat$ChatDuration)] <- 0
+
 
 # examine the chat duration
 summary(chat$ChatDuration)
@@ -110,6 +114,7 @@ filter <- function (string) {
 
 # for chat time of day
 boxplot(filter(chat$CreatedDate), main = "Chat Time of Day", ylab = "Hour")
+
 
 # Part 2: By unit
 
@@ -227,4 +232,6 @@ pct <- round(slices/sum(slices)*100, 1)
 lbls <- paste(lbls, pct) # add percents to labels
 lbls <- paste(lbls,"%",sep="") # add % to labels
 pie(slices,labels = lbls, col=terrain.colors(length(lbls))) 
-pie(slices,labels = lbls, col=terrain.colors(length(lbls)), main="Chat Deployment based on Developers") 
+pie(slices,labels = lbls, col=terrain.colors(length(lbls)), 
+    main="Chat Deployment based on Developers")
+
