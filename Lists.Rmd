@@ -1,0 +1,72 @@
+---
+title: "Lists"
+output: html_notebook
+---
+# August 3, 2021
+Data Science and Machine Learning with R from A-Z Course [Updated for 2021]
+# https://learning.oreilly.com/videos/data-science-and/9781801075282/9781801075282-video3_10/
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+list(1, "a", TRUE)
+```
+```{r}
+x <- vector(mode = "list", length = 5)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+```{r}
+x <- list(1, "a", TRUE)
+```
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+```{r}
+x[2]
+```
+```{r}
+x[[2]]
+```
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+lapply(x, class) -> types_x
+index <- 2
+x[[index]]
+types_x[[index]]
+```
+```{r}
+as.list(1:10)
+```
+```{r}
+xlist <- list(a = "John Stevens", b = 1:10, data = head(iris))
+```
+```{r}
+xlist[["data"]]
+```
+```{r}
+data <- data.frame(Name = c("Athing", "Gabby", "Courtney"), Medal = c("Gold","Bronze","Silver"), Place = c(1, 3, 2))
+data
+```
+
+```{r}
+data[[2]]
+```
+```{r}
+data[2]
+```
+```{r}
+data[1:3]
+```
+```{r}
+data[c(1,3)]
+```
+
+
+```{r}
+sapply(chat, length)
+```
+
