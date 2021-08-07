@@ -23,13 +23,14 @@ summary(chat$ChatDuration)
 ```{r}
 chat %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
-  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE))
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
 ```
+This is in minutes now
 
 ```{r}
 chat %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
-  dplyr::summarize(Ave_wait = mean(WaitTime, na.rm=TRUE))
+  dplyr::summarize(Ave_wait = mean(WaitTime, na.rm=TRUE)/60)
 ```
 
 ## Abandoned chats
