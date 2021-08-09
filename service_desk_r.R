@@ -225,6 +225,7 @@ chats %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
   dplyr::summarise(Ave_hour = mean(chatTime, na.rm = TRUE))
 
+
 # Pie Chart of Live Deployment
 slices <- c(8695, 73, 1125, 30, 8446)
 lbls <- c("OSFA", "Registrar",  "SOS", "Univ Serv","24/7")
@@ -234,4 +235,3 @@ lbls <- paste(lbls,"%",sep="") # add % to labels
 pie(slices,labels = lbls, col=terrain.colors(length(lbls))) 
 pie(slices,labels = lbls, col=terrain.colors(length(lbls)), 
     main="Chat Deployment based on Developers")
-

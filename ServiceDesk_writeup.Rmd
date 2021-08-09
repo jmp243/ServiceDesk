@@ -25,7 +25,7 @@ chat %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
   dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
 ```
-This is in minutes now
+This is in minutes now.
 
 ```{r}
 chat %>%
