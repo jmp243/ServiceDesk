@@ -54,7 +54,7 @@ chat$LiveChatDeployment.DeveloperName <- recode_factor(chat$LiveChatDeployment.D
                                                        "SOS_Automated_Invite" = "SOS Automated",
                                                        "SOS_Chat" = "SOS Chat",
                                                        "University_Services_Chat" = "University Services Chat",
-                                                      "X24_7_Chat" = "24/7 Chat")
+                                                       "X24_7_Chat" = "24/7 Chat")
 # recode LiveChatButton.DeveloperName
 chat$LiveChatButton.DeveloperName <- recode_factor(chat$LiveChatButton.DeveloperName, 
                                                        "OSFA_Chat" = "OSFA Chat", 
@@ -103,7 +103,7 @@ boxplot(waitMinutes, main = "Respondent Wait Time", ylab = "Minutes")
 boxplot(chat$Abandoned, main = "Abandoned Chats", ylab = "Numbers of chat")
 
 # This function is used to get the int value of time
-filter <- function (string) {
+filter1 <- function (string) {
   hour <- substr(string, 12, 13)
   int_hour <- strtoi(hour)
   minute <- substr(string,15, 16)
@@ -113,7 +113,7 @@ filter <- function (string) {
 }
 
 # for chat time of day
-boxplot(filter(chat$CreatedDate), main = "Chat Time of Day", ylab = "Hour")
+boxplot(filter1(chat$CreatedDate), main = "Chat Time of Day", ylab = "Hour")
 
 
 # Part 2: By unit
@@ -137,20 +137,30 @@ ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, y = WaitTime)) +
   xlab("Unit Name")
 
 # for abandoned chats
-ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, y = Abandoned)) +
+Ab_Chat <- ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, y = Abandoned,
+                             fill = LiveChatDeployment.DeveloperName)) +
   geom_boxplot() +
-  ggtitle("Unit abandoned chats") + 
+  # ggtitle("Unit abandoned chats") + 
   ylab("number of abandonded chats") +
   xlab("Unit Name")
 
+Ab_Chat <- Ab_Chat + labs(title = "Abandoned Chats", 
+                          subtitle = "full data",  fill = "Live Chat Developer")
+
+print(Ab_Chat)
 # for chat time of day
-chats = dplyr::mutate(chat, chatTime = filter(chat$CreatedDate))
-ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, y = chatTime)) +
+chats = dplyr::mutate(chat, chatTime = filter1(chat$CreatedDate))
+Unit_ToD <- ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, 
+                              y = chatTime, fill = LiveChatDeployment.DeveloperName)) +
   geom_boxplot() +
-  ggtitle("Unit Chat Time of Day") +
+  # ggtitle("Unit Chat Time of Day") +
+  ylim(0, 24) +
   ylab("Chat Time of Day") +
   xlab("Unit Name")
 
+Unit_ToD <- Unit_ToD + labs(title = "Unit Chat Time of Day", 
+                            subtitle = "full data",  fill = "Live Chat Developer")
+print(Unit_ToD)
 # group data using key variables and grouped by LCDDN
 chats %>%
   select(ChatDuration, Abandoned, CreatedDate, WaitTime, LiveChatDeployment.DeveloperName, chatTime) %>%
@@ -163,10 +173,15 @@ chats %>%
 # new bar graph that is cleaner
 DeployGraph2 <- chat %>%
   # drop_na(LiveChatDeployment.DeveloperName) %>% 
-  ggplot(aes(x = LiveChatDeployment.DeveloperName, fill = LiveChatDeployment.DeveloperName, response = Status)) +
+  ggplot(aes(x = LiveChatDeployment.DeveloperName, fill = LiveChatDeployment.DeveloperName, 
+             response = Status)) +
   geom_bar() +
-  coord_flip() +
-  labs(x = "Units", y = "Number of Chats")
+  labs(x = "Units", y = "Number of Chats") +
+  # geom_text(aes(label=LiveChatDeployment.DeveloperName), position=position_dodge(width=0.9), vjust=-0.25) +
+  # geom_text(data=chats,aes(x=LiveChatDeployment.DeveloperName,
+  #                          y=Status,label=Freq),vjust=0) +
+  theme(legend.position="none") +
+  coord_flip() 
 
 DeployGraph2 <- DeployGraph2 + labs(title = "Number of Chats across Units", 
                                     subtitle = "",  fill = "Live Chat Developer")
@@ -174,6 +189,20 @@ DeployGraph2 <- DeployGraph2 + labs(title = "Number of Chats across Units",
 print(DeployGraph2)
 
 
+## try to add more variables
+DeployGraph3 <- chats %>%
+  # drop_na(LiveChatDeployment.DeveloperName) %>% 
+  ggplot(aes(x = chatTime, fill = LiveChatDeployment.DeveloperName, response = Status)) +
+  geom_bar() +
+  labs(x = "Units", y = "Number of Chats") +
+  # geom_text(aes(label=LiveChatDeployment.DeveloperName), hjust=-0.3) +
+  theme(legend.position="none") +
+  coord_flip() 
+
+DeployGraph3 <- DeployGraph3 + labs(title = "Number of Chats across Units", 
+                                    subtitle = "",  fill = "Live Chat Developer")
+
+print(DeployGraph3)
 
 # # how to find outliers in r
 # Q <- quantile(chat$ChatDuration, probs=c(.25, .75), na.rm = TRUE) # can't do FALSE
@@ -192,11 +221,11 @@ Outliesplease <- function(x){
   lower_limit = Q1 - (iqr*1.5)
   x[x> upper_limit | x < lower_limit] = NA
   return(x)
-}
+} # this works as a function 
 
 chat2 <- chat %>% 
    group_by(LiveChatDeployment.DeveloperName) %>% 
-   dplyr::mutate(is.numeric, Outliesplease)
+   dplyr::mutate(is.numeric, Outliesplease) # this did not work
 
 # group data based on units
 # filter by large campus groupings

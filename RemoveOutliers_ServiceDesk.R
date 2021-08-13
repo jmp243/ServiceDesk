@@ -29,7 +29,7 @@ outliers <- boxplot(chat$ChatDuration)$out
 #drop the rows containing outliers
 chatD_out <- chat[-c(which(chat$ChatDuration %in% outliers)),] # this did work
 
-
+chatD_out1 = dplyr::mutate(chatD_out, chatTime = filter1(chatD_out$CreatedDate))
 # box plot of chat duration 
 durationMinutes1 <- chatD_out$ChatDuration/60
 boxplot(durationMinutes1, main = "Chat Duration", ylab = "Minutes")
@@ -178,7 +178,16 @@ chatD_both <- (chatD_full + chatD_graph) +    # Create grid of plots with title
   plot_annotation(title = "Comparing Full and Cleaned Data")
 
 print(chatD_both)
-
+### more with chat duration
+# chatD_graph2 <- ggplot(chatD_out1, aes(x = LiveChatDeployment.DeveloperName, 
+#                                        y = ChatDuration, fill = LiveChatDeployment.DeveloperName)) +
+#   geom_bar(stat = 'identity') +
+#   labs(x="Unit", y="seconds") +
+#   scale_x_discrete(guide = guide_axis(n.dodge=2))+
+#   theme(legend.position="none") 
+# 
+# chatD_graph2 <- chatD_graph2 + labs(title = "Chat Duration", subtitle = "outliers removed")
+# print(chatD_graph2)
 
 # boxplot for wait time outliers removed
 # waitMinutes1 = chat_wait_out$WaitTime/60
