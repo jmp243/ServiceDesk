@@ -177,9 +177,6 @@ DeployGraph2 <- chat %>%
              response = Status)) +
   geom_bar() +
   labs(x = "Units", y = "Number of Chats") +
-  # geom_text(aes(label=LiveChatDeployment.DeveloperName), position=position_dodge(width=0.9), vjust=-0.25) +
-  # geom_text(data=chats,aes(x=LiveChatDeployment.DeveloperName,
-  #                          y=Status,label=Freq),vjust=0) +
   theme(legend.position="none") +
   coord_flip() 
 
@@ -189,20 +186,53 @@ DeployGraph2 <- DeployGraph2 + labs(title = "Number of Chats across Units",
 print(DeployGraph2)
 
 
-## try to add more variables
-DeployGraph3 <- chats %>%
+## try to add more variables, try to add a percentage
+Graph3 <- chats %>% 
+  group_by(LiveChatDeployment.DeveloperName) %>% 
+  summarize(count = n())  %>%  # count records by species
+  mutate(pct = count/sum(count))  # find percent of total
+
+DeployGraph3 <- 
   # drop_na(LiveChatDeployment.DeveloperName) %>% 
-  ggplot(aes(x = chatTime, fill = LiveChatDeployment.DeveloperName, response = Status)) +
-  geom_bar() +
+  ggplot(Graph3, aes(LiveChatDeployment.DeveloperName, 
+                     pct, fill = LiveChatDeployment.DeveloperName)) +
+  geom_bar(stat='identity') +
   labs(x = "Units", y = "Number of Chats") +
-  # geom_text(aes(label=LiveChatDeployment.DeveloperName), hjust=-0.3) +
   theme(legend.position="none") +
-  coord_flip() 
+  coord_flip() +
+  geom_text(aes(label=scales::percent(pct)), position = position_stack(vjust = .5))
+  # scale_y_continuous(labels = scales::percent)
 
 DeployGraph3 <- DeployGraph3 + labs(title = "Number of Chats across Units", 
                                     subtitle = "",  fill = "Live Chat Developer")
 
 print(DeployGraph3)
+
+###
+Graph4 <- chats %>% 
+  group_by(LiveChatDeployment.DeveloperName) %>% 
+  summarize(count = n()) %>%  # count records by species
+  mutate(pct = count/sum(count))
+
+DeployGraph4 <- 
+  # drop_na(LiveChatDeployment.DeveloperName) %>% 
+  ggplot(Graph4, aes(LiveChatDeployment.DeveloperName, 
+                     count, fill = LiveChatDeployment.DeveloperName)) +
+  geom_bar(stat='identity') +
+  labs(x = "Units", y = "Number of Chats") +
+  coord_flip() +
+  # geom_text(aes(label=LiveChatDeployment.DeveloperName), hjust=-0.3) +
+  theme(legend.position="none") +
+  geom_text(aes(label=scales::percent(pct)), position = position_stack(vjust = .5))
+  # geom_text(aes(label=scales::percent(pct)), vjust = 1.0)
+  # geom_text(aes(label = scales::percent(pct)), vjust = 0.5, nudge_x = -.5) 
+# scale_y_continuous(labels = scales::percent)
+
+DeployGraph4 <- DeployGraph4 + labs(title = "Number of Chats across Units", 
+                                    subtitle = "full data",  fill = "Live Chat Developer")
+
+print(DeployGraph4)
+
 
 # # how to find outliers in r
 # Q <- quantile(chat$ChatDuration, probs=c(.25, .75), na.rm = TRUE) # can't do FALSE
@@ -213,19 +243,22 @@ print(DeployGraph3)
 # remove outliers
 # https://stackoverflow.com/questions/68371040/adapting-a-code-for-removing-outliers-function-not-running-in-loop
 
-Outliesplease <- function(x){
-  Q1 <- quantile(x, probs=.25)
-  Q3 <- quantile(x, probs=.75)
-  iqr = Q3-Q1
-  upper_limit = Q3 + (iqr*1.5)
-  lower_limit = Q1 - (iqr*1.5)
-  x[x> upper_limit | x < lower_limit] = NA
-  return(x)
-} # this works as a function 
+# Outliesplease <- function(x){
+#   Q1 <- quantile(x, probs=.25)
+#   Q3 <- quantile(x, probs=.75)
+#   iqr = Q3-Q1
+#   upper_limit = Q3 + (iqr*1.5)
+#   lower_limit = Q1 - (iqr*1.5)
+#   x[x> upper_limit | x < lower_limit] = NA
+#   return(x)
+# } # this works as a function 
 
-chat2 <- chat %>% 
-   group_by(LiveChatDeployment.DeveloperName) %>% 
-   dplyr::mutate(is.numeric, Outliesplease) # this did not work
+chat2 <- 
+   select(chat, Abandoned, WaitTime) 
+# %>% 
+#   dplyr::summarize(wait_sec = mean(WaitTime, na.rm=TRUE)) 
+
+chat2
 
 # group data based on units
 # filter by large campus groupings

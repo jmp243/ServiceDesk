@@ -18,6 +18,24 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r}
 table(chat$LiveChatDeployment.DeveloperName)
 ```
+graph with percents and counts
+```{r}
+DeployGraph4 <- 
+  ggplot(Graph4, aes(LiveChatDeployment.DeveloperName, 
+                     count, fill = LiveChatDeployment.DeveloperName)) +
+  geom_bar(stat='identity') +
+  labs(x = "Units", y = "Number of Chats") +
+  coord_flip() +
+  theme(legend.position="none") +
+  geom_text(aes(label = scales::percent(pct), y = if_else(count > 0.1*max(count), count/2, count+ 0.05*max(count))))
+
+
+DeployGraph4 <- DeployGraph4 + labs(title = "Number of Chats across Units", 
+                                    subtitle = "full data",  fill = "Live Chat Developer")
+
+print(DeployGraph4)
+```
+
 ```{r}
 ggp_all <- (chatD_graph0 + Wait_time_graph2a) / (Chat_ab_graph0 + CreatedDate_graph0) +    # Create grid of plots with title
   plot_annotation(title = "Overview of Service Desk Requests via Chat", subtitle = "outliers removed") 
