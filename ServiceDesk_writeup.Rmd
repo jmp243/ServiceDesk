@@ -102,18 +102,17 @@ chatAb_out %>%
 ```
 This is the cat time of day. 
 ```{r}
-chatTime = filter1(chat$CreatedDate)
-chats %>%
+
+chat %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
-  dplyr::summarise(Ave_hour = mean(chatTime, na.rm = TRUE))
+  dplyr::summarise(Ave_hour = mean(tm1.dechr, na.rm = TRUE))
 ```
 ```
-This is with outliers removed. 
+This is with outliers removed.     Why won't this print?
 ```{r}
-CreatedDate_out2 = dplyr::mutate(CreatedDate_out, created_hour = filter1(CreatedDate_out$CreatedDate))
-CreatedDate_out2 %>%
+CreatedDate_out %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
-  dplyr::summarise(Ave_hour1 = mean(created_hour, na.rm = TRUE))
+  dplyr::summarise(Ave_hour1 = mean(tm1.dechr, na.rm = TRUE))
 ```
 
 ## Including Plots
@@ -138,9 +137,9 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 Chat time of time
 ```{r}
-chats = dplyr::mutate(chat, chatTime = filter(chat$CreatedDate))
+<!-- chats = dplyr::mutate(chat, chatTime = filter(chat$CreatedDate)) -->
 Unit_ToD <- ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, 
-                              y = chatTime, fill = LiveChatDeployment.DeveloperName)) +
+                              y = chatTime - 7, fill = LiveChatDeployment.DeveloperName)) +
   geom_boxplot() +
   # ggtitle("Unit Chat Time of Day") +
   ylim(0, 24) +
@@ -190,5 +189,18 @@ LiveAgent2_Cap <- LiveAgent2_Cap + labs(title = "Time at Capacity based on Time 
 
 LiveAgent2_Cap
 
+```
+would you mind adding some breakdowns by time of day and day of the week?
+```{r}
+chat %>%
+  group_by(day_of_the_week) %>%
+  dplyr::summarise(Ave_hour = mean(tm1.dechr, na.rm = TRUE))
+```
+
+Try creating a table with days of the week by division
+```{r}
+
+table(chat$LiveChatDeployment.DeveloperName, chat$day_of_the_week)
+  
 ```
 

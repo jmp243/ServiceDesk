@@ -11,6 +11,7 @@ library(tibble)
 library(tidyverse)
 # install.packages("ggstatsplot")
 library(ggstatsplot)
+library(lubridate)
 # library(plotly)
 
 # get the data, change the path according to where you locate
@@ -103,18 +104,110 @@ boxplot(waitMinutes, main = "Respondent Wait Time", ylab = "Minutes")
 boxplot(chat$Abandoned, main = "Abandoned Chats", ylab = "Numbers of chat")
 
 # This function is used to get the int value of time
-filter1 <- function (string) {
-  hour <- substr(string, 12, 13)
-  int_hour <- strtoi(hour)
-  minute <- substr(string,15, 16)
-  int_minute <- strtoi(minute)
-  retVal = int_hour + (int_minute/60)
-  return (retVal)
-}
+
+# filter1 <- function (string) {
+#   hour <- substr(string, 12, 13)
+#   int_hour <- strtoi(hour)
+#   minute <- substr(string,15, 16)
+#   int_minute <- strtoi(minute)
+#   retVal = int_hour + (int_minute/60)
+#   return (retVal)
+# }
+
+# create day of the week
+
+# 2020-07-20T16:59:19.000Z #Complete ISO-8601 date
+
+# change to day of the week
+
+# date_value = "2020-10-08T18:06:08.000Z" #is 5
+# day_of_the_week = date(date_value) %>%
+#   wday()
+# day_of_the_week
+
+date_value = chat$CreatedDate
+day_of_the_week = date(date_value) %>%
+  wday()
+day_of_the_week
+# day of the week
+# chats = dplyr::mutate(chat, day_of_the_week)
+# chats$day_of_the_week <- recode_factor(chats$day_of_the_week, 
+#                                                    "1" = "Sunday", 
+#                                                    "2" = "Monday",
+#                                                    "3" = "Tuesday",
+#                                                    "4" = "Wednesday",
+#                                                    "5" = "Thursday",
+#                                                    "6" = "Friday",
+#                                                    "7" = "Saturday")
+chat = dplyr::mutate(chat, day_of_the_week)
+chat$day_of_the_week <- recode_factor(chat$day_of_the_week, 
+                                       "1" = "Sunday", 
+                                       "2" = "Monday",
+                                       "3" = "Tuesday",
+                                       "4" = "Wednesday",
+                                       "5" = "Thursday",
+                                       "6" = "Friday",
+                                       "7" = "Saturday")
+
+# try converting time with lubridate
+# date_value = "2020-10-08T18:06:08.000Z" #is 5
+# day_of_the_week = date(date_value) %>%
+#   wday()
+# day_of_the_week
+# ymd_hms("2020-10-08T18:06:08.000Z")
+
+Date_Time = ymd_hms(chat$CreatedDate)
+head(Date_Time) #2020-07-02 21:56:42 UTC
+chat <- dplyr::mutate(chat, Date_Time)
+
+# convert time zones
+# df <- data.frame(actualtime = c(
+#   '2015-04-15 13:10:00',
+#   '2015-04-15 14:22:00',
+#   '2015-04-15 10:14:00'),
+#   timezone = c(
+#     'Australia/Sydney',
+#     'Australia/Perth',
+#     'Australia/Perth'))
+# ts_df <- do.call(rbind, lapply(1:nrow(), function(i) {
+#   tz <- chat$timezone[i]
+#   raw <- as.POSIXct(strptime(
+#     chat$Date_Time[i],
+#     format = "%Y-%m-%d %H:%M:%S",
+#     tz ="UTC"),
+#     tz = "UTC")
+#   ts <- format(raw, tz = tz, usetz = TRUE)
+#   data.frame(raw=raw,tz=tz,converted = as.POSIXct(ts))
+# }))
+
+# add the variable Date_Time column to the dataset
+
+# AZ_time = chatTime - 7
+# chat <- dplyr::mutate(chat, AZ_time = (chatTime - 7))
+# add AZ time to variables
+
+t1 <- as.POSIXct(Date_Time, tz = "GMT")
+attributes(t1)$tzone
+AZ_time <- lubridate::with_tz(t1, "MST")
+
+# head(AZ_time)
+chat <- dplyr::mutate(chat, AZ_time)
+
+
+# convert time to decimals 
+tm1.dechr <- hour(chat$AZ_time) + minute(chat$AZ_time)/60 + second(chat$AZ_time)/3600
+tm1.dechr
+
+chat <- dplyr::mutate(chat, tm1.dechr)
+## [1] 23.92
+
+# chatTime = filter1(chat$CreatedDate)
+
 
 # for chat time of day
-boxplot(filter1(chat$CreatedDate), main = "Chat Time of Day", ylab = "Hour")
+boxplot(filter1(chat$AZ_time), main = "Chat Time of Day", ylab = "Hour")
 
+# boxplot(filter2(chat$CreatedDate))
 
 # Part 2: By unit
 
@@ -149,7 +242,7 @@ Ab_Chat <- Ab_Chat + labs(title = "Abandoned Chats",
 
 print(Ab_Chat)
 # for chat time of day
-chats = dplyr::mutate(chat, chatTime = filter1(chat$CreatedDate))
+# chats = dplyr::mutate(chat, chatTime = filter1(chat$CreatedDate))
 Unit_ToD <- ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, 
                               y = chatTime, fill = LiveChatDeployment.DeveloperName)) +
   geom_boxplot() +
@@ -187,7 +280,7 @@ print(DeployGraph2)
 
 
 ## try to add more variables, try to add a percentage
-Graph3 <- chats %>% 
+Graph3 <- chat %>% 
   group_by(LiveChatDeployment.DeveloperName) %>% 
   summarize(count = n())  %>%  # count records by species
   mutate(pct = count/sum(count))  # find percent of total
@@ -208,11 +301,17 @@ DeployGraph3 <- DeployGraph3 + labs(title = "Number of Chats across Units",
 
 print(DeployGraph3)
 
-###
-Graph4 <- chats %>% 
+### Graph with counts and percentages with adjusted labels
+Graph4 <- chat %>% 
   group_by(LiveChatDeployment.DeveloperName) %>% 
   summarize(count = n()) %>%  # count records by species
   mutate(pct = count/sum(count))
+
+# d %>% 
+#   ggplot(aes(x = counts, y = group)) +
+#   geom_col() +
+#   geom_text(aes(label = scales::percent(pct), x = if_else(counts > 0.1*max(counts), counts/2, counts+10))) OR
+# geom_text(aes(label = scales::percent(pct), x = if_else(counts > 0.1*max(counts), counts/2, counts+ 0.05*max(counts))))
 
 DeployGraph4 <- 
   # drop_na(LiveChatDeployment.DeveloperName) %>% 
@@ -223,7 +322,10 @@ DeployGraph4 <-
   coord_flip() +
   # geom_text(aes(label=LiveChatDeployment.DeveloperName), hjust=-0.3) +
   theme(legend.position="none") +
-  geom_text(aes(label=scales::percent(pct)), position = position_stack(vjust = .5))
+  # geom_text(aes(label=scales::percent(pct)), position = position_stack(vjust = .5))
+  # geom_text(aes(label=scales::percent(pct)), x = count + 15)
+  geom_text(aes(label = scales::percent(pct), y = if_else(count > 0.1*max(count), count/2, count+ 0.05*max(count))))
+
   # geom_text(aes(label=scales::percent(pct)), vjust = 1.0)
   # geom_text(aes(label = scales::percent(pct)), vjust = 0.5, nudge_x = -.5) 
 # scale_y_continuous(labels = scales::percent)

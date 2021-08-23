@@ -2,7 +2,7 @@
 # August 12, 2021
 # predictive models
 
-# modeling a few varaiables
+# modeling a few variables
 mod1 <- glm(ChatDuration ~ WaitTime + chatTime, data = chats)
 summary(mod1)
 glmplot<-ggplot(mod1, aes(x= chatTime, y= ChatDuration/60, group=WaitTime)) +
@@ -32,7 +32,7 @@ mod3plot <- ggplot(chatD_out1, aes(x=ChatDuration/60, y = chatTime, group = Live
 mod3plot 
 
 ### 2d density graph of chat dur and time of day
-mod4plot <- ggplot(chatD_out1, aes(x=ChatDuration/60, y = chatTime, fill = LiveChatDeployment.DeveloperName)) +
+mod4plot <- ggplot(chatD_out, aes(x=ChatDuration/60, y = tm1.dechr, fill = LiveChatDeployment.DeveloperName)) +
   stat_density2d(aes(color=LiveChatDeployment.DeveloperName), size=.5) +
   # # geom_jitter()+
   # stat_smooth(method = "loess", se = FALSE)
@@ -111,23 +111,43 @@ asorted[1:10, ]
 # subset Abandoned data
 Ab_chat_only <- chat_wait_out[chat_wait_out$Abandoned != 0, ] # no wait times
 
+summary(chat_wait_out$Abandoned)
+
 mod6 <- lm(Abandoned ~ WaitTime, data = chat_wait_out)
 summary(mod6)
 # not very useful
 mod6plot <- ggplot(chat_wait_out, aes(x= WaitTime, y = Abandoned)) +
-  geom_point() 
-  # # geom_jitter()+
+  geom_point() +
+  geom_jitter()
   # stat_smooth(method = "loess", se = FALSE)
   labs(x="Number of Abandoned Chats", y="Wait Time (seconds)") 
 
-mod6plot <- mod6plot + labs(title = "2D Density Graphy of Chat Duration by Wait Time", subtitle = "outliers removed") 
+mod6plot <- mod6plot + labs(title = "", subtitle = "outliers removed") 
   # scale_color_discrete(name = "Live Chat Developer")
 
 mod6plot
 
 ##
 mod7plot <- ggplot(chat_wait_out, aes(x=WaitTime, y = Abandoned, group = LiveChatDeployment.DeveloperName)) +
-  geom_density2d(aes(color=LiveChatDeployment.DeveloperName), size=.5)
+  geom_line(aes(color=LiveChatDeployment.DeveloperName), size=.5) +
+  labs(x="Wait Time (seconds)", y="Number of Abandoned Chats") 
 
+mod7plot <- mod7plot + labs(title = "Abandoned Chats by Wait Time", subtitle = "outliers removed") + 
+  scale_color_discrete(name = "Live Chat Developer")
+
+mod7plot
 ## lookig at other ways to interpret abandoned
 library(GGally)
+
+# model OSFA and day of the week and hour
+# chat2 <- chat %>% filter(LiveChatDeployment.DeveloperName=="OSFA Chat") %>% dplyr::select(-LiveChatDeployment.DeveloperName)
+# ggplot(chat, aes(x=day_of_the_week, y=tm1.dechr, size = LiveChatDeployment.DeveloperName)) +
+#   geom_point(alpha=0.7)
+
+chat %>%
+  # arrange(desc(pop)) %>%
+  # mutate(LiveChatDeployment.DeveloperName = factor(LiveChatDeployment.DeveloperName, LiveChatDeployment.DeveloperName)) %>%
+  ggplot(aes(x=day_of_the_week, y=tm1.dechr, size = ChatDuration/60)) +
+  geom_point(alpha=0.5) 
+  # scale_size(range = c(.1, 24), name="Population (M)")
+
