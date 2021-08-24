@@ -3,22 +3,22 @@
 # predictive models
 
 # modeling a few variables
-mod1 <- glm(ChatDuration ~ WaitTime + chatTime, data = chats)
-summary(mod1)
-glmplot<-ggplot(mod1, aes(x= chatTime, y= ChatDuration/60, group=WaitTime)) +
-  geom_line(size=1, aes(color=WaitTime/60)) + 
-  geom_smooth()
-glmplot
+# mod1 <- glm(ChatDuration ~ WaitTime + chatTime, data = chats)
+# summary(mod1)
+# glmplot<-ggplot(mod1, aes(x= chatTime, y= ChatDuration/60, group=WaitTime)) +
+#   geom_line(size=1, aes(color=WaitTime/60)) + 
+#   geom_smooth()
+# glmplot
 
 ## chat time of day with as it affects duration and wait time
-mod2 <- glm(ChatDuration ~ WaitTime + chatTime, data = chatD_out1)
-summary(mod2)
-
-mod2plot <- ggplot(mod2, aes(x = chatTime, y=ChatDuration/60, group = WaitTime)) +
-  geom_point(size=1, aes(color=WaitTime/60)) 
-  # geom_smooth()
-
-mod2plot
+# mod2 <- glm(ChatDuration ~ WaitTime + chatTime, data = chatD_out1)
+# summary(mod2)
+# 
+# mod2plot <- ggplot(mod2, aes(x = chatTime, y=ChatDuration/60, group = WaitTime)) +
+#   geom_point(size=1, aes(color=WaitTime/60)) 
+#   # geom_smooth()
+# 
+# mod2plot
 
 ##
 mod3 <- glm(ChatDuration ~ chatTime, data = chatD_out1)
@@ -73,7 +73,7 @@ mod5plot
 #   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
 # setting NA to 0 for Abandoned chat data
-chatAb_out[is.na(chatAb_out)] <- 0
+# chatAb_out[is.na(chatAb_out)] <- 0
 
 # https://stats.idre.ucla.edu/r/dae/robust-regression/
 library(MASS)
@@ -113,19 +113,19 @@ Ab_chat_only <- chat_wait_out[chat_wait_out$Abandoned != 0, ] # no wait times
 
 summary(chat_wait_out$Abandoned)
 
-mod6 <- lm(Abandoned ~ WaitTime, data = chat_wait_out)
-summary(mod6)
-# not very useful
-mod6plot <- ggplot(chat_wait_out, aes(x= WaitTime, y = Abandoned)) +
-  geom_point() +
-  geom_jitter()
-  # stat_smooth(method = "loess", se = FALSE)
-  labs(x="Number of Abandoned Chats", y="Wait Time (seconds)") 
-
-mod6plot <- mod6plot + labs(title = "", subtitle = "outliers removed") 
-  # scale_color_discrete(name = "Live Chat Developer")
-
-mod6plot
+# mod6 <- lm(Abandoned ~ WaitTime, data = chat_wait_out)
+# summary(mod6)
+# # not very useful
+# mod6plot <- ggplot(chat_wait_out, aes(x= WaitTime, y = Abandoned)) +
+#   geom_point() +
+#   geom_jitter()
+#   # stat_smooth(method = "loess", se = FALSE)
+#   labs(x="Number of Abandoned Chats", y="Wait Time (seconds)") 
+# 
+# mod6plot <- mod6plot + labs(title = "", subtitle = "outliers removed") 
+#   # scale_color_discrete(name = "Live Chat Developer")
+# 
+# mod6plot
 
 ##
 mod7plot <- ggplot(chat_wait_out, aes(x=WaitTime, y = Abandoned, group = LiveChatDeployment.DeveloperName)) +
@@ -151,3 +151,55 @@ chat %>%
   geom_point(alpha=0.5) 
   # scale_size(range = c(.1, 24), name="Population (M)")
 
+### new dates, subset with new days
+fall_sem_chats <- chat[chat$AZ_time >= "2020-08-17" & chat$AZ_time <= "2020-09-04",] # peak fall hours before registrar was added
+none_fall_chats <- chat[chat$AZ_time < "2020-08-17" | chat$AZ_time > "2020-09-04",] # none fall peak semesters
+
+none_fall_chats <- chat %>% 
+  filter(AZ_time < "2020-08-17" | AZ_time > "2020-09-04")
+
+chat <- chat %>% 
+  mutate(AZ_date = as.Date(AZ_time))
+
+# evaluate peak times
+library(plotly)
+# hist(chat$AZ_date, breaks = 20)
+ggplot(chat, aes(x=AZ_date)) +
+  # geom_vline(data=chat, aes(xintercept = "2020-08-17"), colour="red") +
+  geom_histogram(binwidth = 10)
+
+
+# subset data 
+no24seven <- dplyr::filter(chat, LiveChatDeployment.DeveloperName!="24/7 Chat")
+
+# registrar <- dplyr::filter(chat, LiveChatDeployment.DeveloperName=="Registrar Chat")
+
+# chat %>% 
+#   dplyr::filter(chat, LiveChatDeployment.DeveloperName=="Registrar Chat") %>% 
+#   dplyr::summarise()
+
+# ## new graphs for fall semester chats
+# fall_sem_graph <- ggplot(fall_sem_chats, aes(y = WaitTime/60)) +
+#   geom_boxplot() +
+#   # ylim(0, 35) +
+#   labs(x = "Overall", y="Minutes") +
+#   scale_x_discrete(guide = guide_axis(n.dodge=2)) +
+#   theme(legend.position="none") 
+# 
+# fall_sem_graph <- fall_sem_graph + labs(title = "Wait Time", subtitle = "peak fall semester")
+# print(fall_sem_graph)
+# 
+# #
+# no24seven_graph <- ggplot(no24seven, aes(y = WaitTime/60)) +
+#   geom_boxplot() +
+#   # ylim(0, 35) +
+#   labs(x = "Overall", y="Minutes") +
+#   scale_x_discrete(guide = guide_axis(n.dodge=2)) +
+#   theme(legend.position="none") 
+# 
+# no24seven_graph <- no24seven_graph+ labs(title = "Wait Time", subtitle = "no 24/7")
+# print(no24seven_graph)
+
+# chat time of day based on day of the week in the dataset without 24/7
+no24seven %>% dplyr::group_by(day_of_the_week) %>% 
+  dplyr::summarise(chatDoT = mean(tm1.dechr, na.rm = TRUE))

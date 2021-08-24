@@ -150,6 +150,13 @@ Unit_ToD <- Unit_ToD + labs(title = "Unit Chat Time of Day",
                             subtitle = ,  fill = "Live Chat Developer")
 print(Unit_ToD)
 ```
+average chat duration for day fo the week
+```{r}
+chat %>%
+  group_by(day_of_the_week) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
+```
+```
 
 Part II with the Live Agent Data
 ```{r}
@@ -203,4 +210,15 @@ Try creating a table with days of the week by division
 table(chat$LiveChatDeployment.DeveloperName, chat$day_of_the_week)
   
 ```
-
+fall peak times
+```{r}
+fall_sem_chats %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
+```
+no 24/7 chats
+```{r}
+no24seven %>%
+  group_by(day_of_the_week) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
+```
