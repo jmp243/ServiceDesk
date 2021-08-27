@@ -153,6 +153,7 @@ chat %>%
 
 ### new dates, subset with new days
 fall_sem_chats <- chat[chat$AZ_time >= "2020-08-17" & chat$AZ_time <= "2020-09-04",] # peak fall hours before registrar was added
+
 none_fall_chats <- chat[chat$AZ_time < "2020-08-17" | chat$AZ_time > "2020-09-04",] # none fall peak semesters
 
 none_fall_chats <- chat %>% 
@@ -166,7 +167,10 @@ library(plotly)
 # hist(chat$AZ_date, breaks = 20)
 ggplot(chat, aes(x=AZ_date)) +
   # geom_vline(data=chat, aes(xintercept = "2020-08-17"), colour="red") +
-  geom_histogram(binwidth = 10)
+  geom_histogram(binwidth = 10) + 
+  scale_x_date(date_breaks = "1 month",
+               date_labels = "%Y %m", 
+               limits = c(as.Date("2016-12-01"), NA))
 
 
 # subset data 

@@ -20,6 +20,10 @@ table(chat2021$LiveChatDeployment.DeveloperName)
 ```
 graph with percents and counts
 ```{r}
+
+```
+
+```{r}
 DeployGraph4 <- 
   ggplot(Graph4, aes(LiveChatDeployment.DeveloperName, 
                      count, fill = LiveChatDeployment.DeveloperName)) +
@@ -31,7 +35,7 @@ DeployGraph4 <-
 
 
 DeployGraph4 <- DeployGraph4 + labs(title = "Number of Chats across Units", 
-                                    subtitle = "full data",  fill = "Live Chat Developer")
+                                    subtitle = "full data up through Oct 2020",  fill = "Live Chat Developer")
 
 print(DeployGraph4)
 ```
@@ -51,8 +55,20 @@ chat %>%
 ```
 This is in minutes now.
 ```{r}
+chat2021 %>%
+  group_by(DeveloperName) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60) # full data
+```
+
+```{r}
 chatD_out %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60) # full data
+```
+this is with the updated data 
+```{r}
+chatD_out %>%
+  group_by(DeveloperName) %>%
   dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60) # full data
 ```
 

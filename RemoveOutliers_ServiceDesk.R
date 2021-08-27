@@ -51,7 +51,7 @@ outliers2 <- boxplot(chat$Abandoned)$out
 
 #drop the rows containing abandoned chat outliers
 chatAb_out <- chat[-c(which(chat$Abandoned %in% outliers2)),] # this did work
-boxplot(chatAb_out$Abandoned, main = "Abandoned Chats", ylab = "Numbers of chat")
+boxplot(chatAb_out$Abandoned, main = "Abandoned Chats", ylab = "Seconds")
 
 
 # for chat time of day, no outliers were dropped
