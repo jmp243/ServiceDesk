@@ -187,7 +187,8 @@ studentenrollments <-read.csv("studentenrollments.csv")
 # emplid_contactId<-contacts[,c(1, 8)]
 # emplid_contactId$Emplid__cnum<-as.numeric(emplid_contactId$Emplid__c)
 #     appointments_appcase<-subset(appointments, appointments$Appointment_Date__c<as.Date("2020-08-30") & appointments$Appointment_Date__c>as.Date("2019-08-01"))
-#     appointments_appcase<-subset(appointments_appcase, (appointments_appcase$Appointment_Status__c == "Attended") | (appointments_appcase$Appointment_Status__c == "Scheduled") | (appointments_appcase$Appointment_Status__c == "Checked In"))
+#     appointments_appcase<-subset(appointments_appcase, 
+#     (appointments_appcase$Appointment_Status__c == "Attended") | (appointments_appcase$Appointment_Status__c == "Scheduled") | (appointments_appcase$Appointment_Status__c == "Checked In"))
 #     cases_appcase<-subset(cases, cases$Interaction_Date__c<as.Date("2020-08-30") & cases$Interaction_Date__c>as.Date("2019-08-01"))
 #     cases_appcase<-subset(cases_appcase, cases_appcase$RecordType.Name=="Note")
 #     
@@ -249,10 +250,10 @@ set.seed(42)
 (ids_lookups <- data.frame(Id=unique_ids,
                            new_ID=rand_ids))
 
-contacts_did <- merge(contacts,
-                                  ids_lookups, by.x = "Id", by.y = "Id")
+contacts_did <- merge(contacts, ids_lookups, by.x = "Id", by.y = "Id")
+
 names(contacts_did)
-contacts_did<-contacts_did[-c(1,8)]
+contacts_did<-contacts_did[-c(1,8)] # this could be problematic based on how I set up the dataset.
 
 ###didentify other files using this new random id
 

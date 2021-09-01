@@ -1,0 +1,130 @@
+---
+title: "Service_Desk_report"
+author: "Jung Mee Park"
+date: "8/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+summary(chat$ChatDuration)
+```
+```{r}
+ggp_all <- (chatD_graph0 + Wait_time_graph2a) / (Chat_ab_graph0 + CreatedDate_graph0) +    # Create grid of plots with title
+  plot_annotation(title = "Overview of Service Desk Requests via Chat", subtitle = "outliers removed") 
+
+ggp_all  
+```
+
+
+```{r}
+chat %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60) # full data
+```
+This is in minutes now.
+```{r}
+chatD_graph <- ggplot(chatD_out, aes(x = LiveChatDeployment.DeveloperName, y = durationMinutes1, fill = LiveChatDeployment.DeveloperName)) +
+  geom_boxplot() +
+  ylim(0, 35) +
+  labs(x="Unit", y="Minutes") +
+  scale_x_discrete(guide = guide_axis(n.dodge=2))+
+  theme(legend.position="none") 
+
+chatD_graph <- chatD_graph + labs(title = "Chat Duration", 
+                                          subtitle = "outliers removed")
+print(chatD_graph)
+
+```
+Below is data with the outliers removed. 
+```{r}
+ chatD_out %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
+```
+
+```{r}
+chat %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarize(Ave_wait = mean(WaitTime, na.rm=TRUE)/60)
+```
+This is a graph of Wait time. This is for everyone. 
+```{r}
+chat_wait_out %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarize(Ave_wait = mean(WaitTime, na.rm=TRUE)/60)
+```
+
+## Abandoned chats
+```{r}
+chat %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarise(Ave_abandon = mean(Abandoned, na.rm = TRUE))
+```
+Below are data with the removal of outliers. 
+```{r}
+chatAb_out %>% 
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarise(Ave_abandon = mean(Abandoned, na.rm = TRUE))
+```
+This is the cat time of day. 
+```{r}
+chatTime = filter1(chat$CreatedDate)
+chats %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarise(Ave_hour = mean(chatTime, na.rm = TRUE))
+```
+```
+This is with outliers removed. 
+```{r}
+CreatedDate_out2 = dplyr::mutate(CreatedDate_out, created_hour = filter1(CreatedDate_out$CreatedDate))
+CreatedDate_out2 %>%
+  group_by(LiveChatDeployment.DeveloperName) %>%
+  dplyr::summarise(Ave_hour1 = mean(created_hour, na.rm = TRUE))
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+DeployGraph2 <- chat %>%
+  # drop_na(LiveChatDeployment.DeveloperName) %>% 
+  ggplot(aes(x = LiveChatDeployment.DeveloperName, fill = LiveChatDeployment.DeveloperName, response = Status)) +
+  geom_bar() +
+  coord_flip() +
+  labs(x = "Units", y = "Number of Chats")
+
+DeployGraph2 <- DeployGraph2 + labs(title = "Number of Chats across Units", 
+                                    subtitle = "",  fill = "Live Chat Developer") 
+
+print(DeployGraph2)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Chat time of time
+```{r}
+chats = dplyr::mutate(chat, chatTime = filter(chat$CreatedDate))
+Unit_ToD <- ggplot(chats, aes(x = LiveChatDeployment.DeveloperName, 
+                              y = chatTime, fill = LiveChatDeployment.DeveloperName)) +
+  geom_boxplot() +
+  # ggtitle("Unit Chat Time of Day") +
+  ylim(0, 24) +
+  ylab("Chat Time of Day") +
+  xlab("Unit Name")
+
+Unit_ToD <- Unit_ToD + labs(title = "Unit Chat Time of Day", 
+                            subtitle = ,  fill = "Live Chat Developer")
+print(Unit_ToD)
+```
+

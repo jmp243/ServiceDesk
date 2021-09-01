@@ -207,3 +207,6 @@ no24seven <- dplyr::filter(chat, LiveChatDeployment.DeveloperName!="24/7 Chat")
 # chat time of day based on day of the week in the dataset without 24/7
 no24seven %>% dplyr::group_by(day_of_the_week) %>% 
   dplyr::summarise(chatDoT = mean(tm1.dechr, na.rm = TRUE))
+
+### modeling the full joined data chat_gpa
+
