@@ -1,0 +1,207 @@
+---
+title: "Enrollment_data"
+author: "Jung Mee Park"
+date: "8/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r chat_gpa}
+mod4plot <- ggplot(chat_gpa, aes(x=ChatDuration/60, y = tm1.dechr, fill = DeveloperName)) +
+  stat_density2d(aes(color=DeveloperName), size=.5) +
+  # # geom_jitter()+
+  # stat_smooth(method = "loess", se = FALSE)
+  labs(x="Chat Duration (minutes)", y="Hour") 
+
+mod4plot <- mod4plot + labs(title = "2D Density Graphy of Chat Duration by Time of Day", 
+                            subtitle = "full data", 
+                            fill = "Live Chat Developer") +
+  scale_y_continuous(breaks=seq(0,24,4)) +
+  scale_color_discrete(name = "Live Chat Developer")
+  # scale_x_discrete(guide = guide_axis(n.dodge=2))
+
+mod4plot
+```
+I can add some graphs with division by students. 
+```{r}
+left_graph <- left_enroll %>%
+  # mutate(Q7 = fct_infreq(Q7)) %>%
+  drop_na(Students) %>% 
+  ggplot(aes(x = DeveloperName, fill = Students, response = Students)) +
+  geom_bar() +
+  coord_flip() +
+  labs(x = "", y = "")
+
+left_graph <- left_graph + labs(title = "",
+                          subtitle = "undergraduate and graduate students")
+
+print(left_graph) # 16 or more is 907 and that is about 40% 
+```
+more graphs
+```{r}
+left_graph1 <- chat_gpa %>%
+  # mutate(Q7 = fct_infreq(Q7)) %>%
+  drop_na(First_Generation__c) %>% 
+  ggplot(aes(x = DeveloperName, fill = First_Generation__c, response = First_Generation__c)) +
+  geom_bar() +
+  coord_flip() +
+  labs(x = "", y = "")
+
+left_graph1 <- left_graph1 + labs(title = "",
+                          subtitle = "first generation students")
+
+print(left_graph1)
+```
+look at different academic levels
+```{r}
+left_graph2 <- chat_gpa %>%
+  # mutate(Q7 = fct_infreq(Q7)) %>%
+  drop_na(class_standing) %>% 
+  ggplot(aes(x = DeveloperName, fill = class_standing, response = class_standing)) +
+  geom_bar() +
+  # coord_flip() +
+  labs(x = "", y = "")
+
+left_graph2 <- left_graph2 + labs(title = "Number of Chats by Unit",
+                          subtitle = "full data noting class standing")
+
+print(left_graph2)
+```
+create some tables
+```{r}
+chat_gpa %>%
+  group_by(class_standing) %>%
+  dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
+```
+
+Table of class standing
+```{r}
+table(chat_gpa$class_standing)
+```
+
+Include tables with grouping counts
+```{r}
+
+  table(chat_gpa$DeveloperName, chat_gpa$class_standing)
+```
+a pie chart
+```{r}
+slices <- c(3345, 4502, 7106, 11559, 6902)
+lbls <- c("Freshman", "Sophomore",  "Junior", "Senior","Graduate")
+pct <- round(slices/sum(slices)*100, 1)
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # add % to labels
+pie(slices,labels = lbls, col=terrain.colors(length(lbls))) 
+pie(slices,labels = lbls, col=terrain.colors(length(lbls)), 
+     main="Chat Users by Class Standing")
+
+```
+
+make another bar graph
+```{r}
+### Graph with counts and percentages with adjusted labels
+Graph5 <- chat_gpa %>% 
+  group_by(class_standing) %>% 
+  summarize(count = n()) %>%  # count records by species
+  mutate(pct = count/sum(count))
+
+DeployGraph5 <- 
+  # drop_na(LiveChatDeployment.DeveloperName) %>% 
+  ggplot(Graph5, aes(class_standing, 
+                     count, fill = class_standing)) +
+  geom_bar(stat='identity') +
+  labs(x = "Class Standing", y = "Number of Chats") +
+  coord_flip() +
+  # geom_text(aes(label=LiveChatDeployment.DeveloperName), hjust=-0.3) +
+  theme(legend.position="none") +
+  geom_text(aes(label = scales::percent(pct), y = if_else(count > 0.1*max(count), count/2, count+ 0.05*max(count))))
+
+  # geom_text(aes(label=scales::percent(pct)), vjust = 1.0)
+  # geom_text(aes(label = scales::percent(pct)), vjust = 0.5, nudge_x = -.5) 
+# scale_y_continuous(labels = scales::percent)
+
+DeployGraph5 <- DeployGraph5 + labs(title = "Number of Chats by Class Standing", 
+                                    subtitle = "full data",  fill = "Class Standing")
+
+print(DeployGraph5)
+
+```
+histogram by class standing 
+```{r}
+p3 <- ggplot(chat_gpa, aes(x=AZ_date, fill = class_standing)) +
+  geom_histogram(binwidth = 5) + 
+  labs(x = "Date", y="Count")
+
+p3 <- p3 + scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week",
+                      date_labels = "%b-%y") + labs(title = "Histogram of Chats over Time", 
+                                                  subtitle = "full data", fill = "Class Standing")
+p3
+
+```
+
+scatter plot with full data
+```{r}
+ggplot(chat_gpa, aes(x=WaitTime/60, y=ChatDuration/60, color=class_standing)) + 
+    geom_point(size=6) 
+```
+scatter plot without outliers
+```{r}
+ggplot(chatD_out, aes(x=WaitTime/60, y=ChatDuration/60, color=class_standing)) + 
+    geom_point(size=6) 
+```
+something with gpa without 24/7
+```{r}
+non24 <- chat_gpa %>% 
+  filter(DeveloperName != "24/7")
+
+ggplot(non24, aes(x=Cumulative_GPA__c, y=ChatDuration/60, color=DeveloperName)) + 
+    geom_point(size=6) 
+```
+another 2d graph 
+```{r}
+mod5plot <- ggplot(chat_gpa, aes(x=WaitTime/60, y = ChatDuration/60, fill = DeveloperName)) +
+  stat_density2d(aes(color=DeveloperName)) +
+  # # geom_jitter()+
+  # stat_smooth(method = "loess", se = FALSE)
+  labs(x="Wait Time (minutes)", y="Chat Duration (minutes)") 
+
+mod5plot <- mod5plot + labs(title = "2D Density Graphy of Wait Time by Chat Duration", 
+                            subtitle = "full data", 
+                            fill = "Developer Name") +
+  # scale_y_continuous(breaks=seq(0,24,4)) +
+  scale_color_discrete(name = "Developer Name")
+  # scale_x_discrete(guide = guide_axis(n.dodge=2))
+
+mod5plot
+```
+
+make tables
+```{r}
+# data("airlines", package = "pnwflights14")
+by_class <- chat_gpa %>% group_by(DeveloperName, class_standing) %>%
+  summarize(count = n()) %>%
+  # inner_join(x = ., y = airlines, by = "carrier") %>%
+  # arrange(desc(count))
+  arrange(class_standing)
+
+kable(by_class)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
