@@ -8,6 +8,9 @@ ServiceDesk_data/
 *.DS_Store
 *.docx
 *.pdf
+*.csv
+*.png
+
 .Rproj
 Lists.nb.html
 ServiceDesk.Rproj
