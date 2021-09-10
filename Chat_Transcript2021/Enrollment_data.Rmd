@@ -195,6 +195,45 @@ by_class <- chat_gpa %>% group_by(DeveloperName, class_standing) %>%
 
 kable(by_class)
 ```
+another table 
+```{r}
+library(data.table)
+left_enroll_table <- left_enroll %>% 
+    select(Abandoned, ChatDuration, MaxResponseTimeOperator, MaxResponseTimeVisitor, 
+         OperatorMessageCount,WaitTime, tm1.dechr, Cumulative_GPA__c) %>% 
+         summarise_all(.tbl = ., funs(a_min = min(.)
+                               , b_q25 = quantile(., 0.25) 
+                               , c_median = median(.)
+                               , d_q75 = quantile(., 0.75)
+                               , e_max = max(.) 
+                               , f_mean = mean(.) 
+                               , g_sd = sd(.)), na.rm = TRUE) %>% 
+                              data.table(.)
+
+left_enroll_table
+
+```
+```{r}
+ left_enroll_table <- left_enroll %>% 
+    select(Abandoned, ChatDuration, MaxResponseTimeOperator, MaxResponseTimeVisitor, 
+         OperatorMessageCount,WaitTime, tm1.dechr, Cumulative_GPA__c) %>% 
+         summarise_all(.tbl = ., funs(min = min(.), 
+                               q25 = quantile(., 0.25), 
+                               median = median(.), 
+                               q75 = quantile(., 0.75), 
+                               max = max(.), 
+                               mean = mean(.), 
+                               sd = sd(.)), na.rm = TRUE) %>% 
+                            data.table(.)
+
+left_enroll_table
+```
+
+using the tibble 
+```{r}
+filteredData <- filter(chat_gpa, WaitTime > 30)
+filteredData
+```
 
 ## Including Plots
 
@@ -205,3 +244,12 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Create multiple tables in R
+```{r}
+LiveA_table <- LiveAgent2 %>% 
+  select(starts_with("Time"))
+  
+colMeans(LiveA_table, na.rm = TRUE)
+```
+
