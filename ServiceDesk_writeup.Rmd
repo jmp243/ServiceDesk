@@ -18,8 +18,29 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r}
 table(chat2021$LiveChatDeployment.DeveloperName)
 ```
-graph with percents and counts
+
+Data tables for the full data
 ```{r}
+library(tibble)
+ chat2021_table <- chat2021 %>% 
+    select(Abandoned, ChatDuration, MaxResponseTimeOperator, MaxResponseTimeVisitor, 
+         OperatorMessageCount,WaitTime, tm1.dechr)
+ 
+d.summary.extended <-  chat2021_table <- chat2021 %>% 
+    select(Abandoned, ChatDuration, MaxResponseTimeOperator, MaxResponseTimeVisitor, 
+         OperatorMessageCount,WaitTime, tm1.dechr) %>% 
+psych::describe(quant=c(.25,.75)) %>%
+as_tibble() %>%
+rownames_to_column() %>%
+print()
+
+# row.names(left_enroll_table) <- c('Abandoned', 'ChatDuration', 'MaxResponseTimeOperator', 'MaxResponseTimeVisitor','OperatorMessageCount','WaitTime', 'tm1.dechr', 'Cumulative_GPA__c')
+d.summary <- d.summary.extended %>%
+select(var=rowname, min, q25=Q0.25, median, q75=Q0.75, max, mean, sd) %>%
+print()
+
+```
+
 
 ```
 
@@ -71,6 +92,13 @@ chatD_out %>%
   group_by(DeveloperName) %>%
   dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60) # full data
 ```
+this is for the updated data
+```{r}
+chat2021 %>%
+  group_by(DeveloperName) %>%
+  dplyr::summarise(Ave_hour = mean(tm1.dechr, na.rm = TRUE))
+
+```
 
 ```{r}
 chatD_graph <- ggplot(chatD_out, aes(x = LiveChatDeployment.DeveloperName, y = durationMinutes1, fill = LiveChatDeployment.DeveloperName)) +
@@ -93,7 +121,7 @@ Below is data with the outliers removed.
 ```
 
 ```{r}
-chat %>%
+chat2021 %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
   dplyr::summarize(Ave_wait = mean(WaitTime, na.rm=TRUE)/60)
 ```
@@ -106,7 +134,7 @@ chat_wait_out %>%
 
 ## Abandoned chats
 ```{r}
-chat %>%
+chat2021 %>%
   group_by(LiveChatDeployment.DeveloperName) %>%
   dplyr::summarise(Ave_abandon = mean(Abandoned, na.rm = TRUE))
 ```
@@ -119,16 +147,18 @@ chatAb_out %>%
 This is the cat time of day. 
 ```{r}
 
-chat %>%
-  group_by(LiveChatDeployment.DeveloperName) %>%
+chat2021 %>%
+  group_by(DeveloperName) %>%
   dplyr::summarise(Ave_hour = mean(tm1.dechr, na.rm = TRUE))
 ```
 ```
 This is with outliers removed.     Why won't this print?
 ```{r}
 CreatedDate_out %>%
-  group_by(LiveChatDeployment.DeveloperName) %>%
+  group_by(DeveloperName) %>%
   dplyr::summarise(Ave_hour1 = mean(tm1.dechr, na.rm = TRUE))
+  
+
 ```
 
 ## Including Plots
@@ -136,7 +166,7 @@ CreatedDate_out %>%
 You can also embed plots, for example:
 
 ```{r}
-DeployGraph2 <- chat %>%
+DeployGraph2 <- chat2021 %>%
   # drop_na(LiveChatDeployment.DeveloperName) %>% 
   ggplot(aes(x = LiveChatDeployment.DeveloperName, fill = LiveChatDeployment.DeveloperName, response = Status)) +
   geom_bar() +
@@ -215,7 +245,13 @@ LiveAgent2_Cap
 ```
 would you mind adding some breakdowns by time of day and day of the week?
 ```{r}
-chat %>%
+chat2021 %>%
+  group_by(day_of_the_week) %>%
+  dplyr::summarise(Ave_hour = mean(tm1.dechr, na.rm = TRUE))
+```
+table with outliers removes
+```{r}
+CreatedDate_out %>%
   group_by(day_of_the_week) %>%
   dplyr::summarise(Ave_hour = mean(tm1.dechr, na.rm = TRUE))
 ```
@@ -226,6 +262,13 @@ Try creating a table with days of the week by division
 table(chat$LiveChatDeployment.DeveloperName, chat$day_of_the_week)
   
 ```
+abandoning chats
+```{r}
+chatAb_out %>%
+     group_by(day_of_the_week) %>%
+     dplyr::summarize(Mean = mean(Abandoned, na.rm=TRUE)/60)
+```
+
 fall peak times
 ```{r}
 fall_sem_chats %>%

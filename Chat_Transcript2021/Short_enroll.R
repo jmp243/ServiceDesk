@@ -12,7 +12,7 @@ library(tidyverse)
 library(ggstatsplot)
 library(lubridate)
 library(forcats)
-
+library(purrr)
 # load in the data
 setwd("~/Documents/Trellis/ServiceDesk/Chat_Transcript2021/data")
 
@@ -120,6 +120,18 @@ write.csv(left_enroll, "left_enroll.csv", row.names = FALSE)
 # 
 # summary(left_enroll$Cumulative_GPA__c) # same number of NA as X.y
 
+chat_gpa$DeveloperName = recode_factor(chat_gpa$LiveChatDeployment.DeveloperName, 
+                                       "X24_7_Chat" = "24/7",
+                                       "University_Services_Chat" = "Other",
+                                       "Think_Tank_Chat" = "Other",
+                                       "Study_Abroad_Chat" = "Other",
+                                       "SOS_Chat" = "SOS",
+                                       "SECD_Chat" = "Other",
+                                       "Registrar_Chat" = "Registrar",
+                                       "Psych_Dept_Chat" = "Other",
+                                       "OSFA_Chat" = "OSFA", 
+                                       "LifeLab_Chat" = "Other",
+                                       "College_of_Engineering_Chat" = "Other")
 
 # GPA data
 chat_gpa <- left_enroll %>% 
@@ -235,15 +247,84 @@ fig <- fig %>% layout(title = "Class Standing by Enrollment and Chat Usage", sho
                       grid=list(rows=0, columns=1),
                       xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                       yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-                      legend = list(y = 0.5),
-                      annotations = list(x = c(.08, .62, .08, .62),
-                                         # y = c(.78, .78, .22, .22),
+                      # legend = list(y = 0.5),
+                      annotations = list(x = c(.27, .72),
+                                         y = c(.42, .42),
                                          text = c("Enrollment","Chat Usage"),
                                          # xref = "papper",
                                          yref = "papper",
                                          showarrow = F))
 
 fig
+
+# bar graph of only 
+Other <- chat2021 %>% 
+  # group_by(LiveChatDeployment.DeveloperName) %>% 
+  filter(LiveChatDeployment.DeveloperName != "Registrar_Chat"& 
+           LiveChatDeployment.DeveloperName != "SOS_Chat" & 
+           LiveChatDeployment.DeveloperName != "OSFA_Chat" &  
+           LiveChatDeployment.DeveloperName != "X24_7_Chat")
+
+# # subset data to just live chat developer and az date 
+# date_range <- chat2021 %>% 
+#   select(LiveChatDeployment.DeveloperName, 
+#          # Date_Time, 
+#          AZ_date)
+# 
+# summary(date_range)
+# 
+# date_range %>% 
+# # gather(date_range) %>% 
+#   group_by(LiveChatDeployment.DeveloperName) %>% summarise_all(funs(min, max))
+
+## shorter way to find date ranges for Units
+chat2021 %>% 
+  select(LiveChatDeployment.DeveloperName, AZ_date) %>% 
+         group_by(LiveChatDeployment.DeveloperName) %>% 
+         summarise_all(funs(min, max))
+# recode variable names
+Other$DeveloperName = recode_factor(Other$LiveChatDeployment.DeveloperName, 
+                                       # "X24_7_Chat" = "24/7",
+                                       "University_Services_Chat" = "Univ Services",
+                                       "Think_Tank_Chat" = "Think Tank",
+                                       "Study_Abroad_Chat" = "Study Abroad",
+                                       # "SOS_Chat" = "SOS",
+                                       "SECD_Chat" = "SECD",
+                                       # "Registrar_Chat" = "Registrar",
+                                       "Psych_Dept_Chat" = "Pyschology",
+                                       # "OSFA_Chat" = "OSFA", 
+                                       "LifeLab_Chat" = "LifeLab",
+                                       "College_of_Engineering_Chat" = "Engineer")
+### new graph
+overview_pct1 <- Other %>% 
+  group_by(DeveloperName) %>%  
+  summarize(count = n()) %>%  # count records by species
+  mutate(pct = count/sum(count))
+
+pct_graph1 <- 
+  # drop_na(LiveChatDeployment.DeveloperName) %>% 
+  ggplot(overview_pct1, aes(DeveloperName, 
+                           count, fill = DeveloperName)) +
+  geom_bar(stat='identity') +
+  labs(x = "Units", y = "Number of Chats") +
+  coord_flip() +
+  theme(legend.position="none") +
+  geom_text(aes(label = scales::percent(pct), y = if_else(count > 0.1*max(count), count/2, count+ 0.05*max(count))))
+
+pct_graph1 <- pct_graph1 + labs(title = "Number of Chats within the Other Units", 
+                              subtitle = "full data from 6/1/2020 to 9/8/2021",  fill = "Live Chat Developer")
+
+print(pct_graph1)
+
+# multiple summaries 
+# chat2021 %>%
+#   select(LiveChatDeployment.DeveloperName, Date_Time, AZ_date) %>% 
+#   # filter(x2 != 20) %>% 
+#   group_by(LiveChatDeployment.DeveloperName)
+#   # mutate_at(vars(Date_Time), mean) %>%
+#   # mutate_at(vars(AZ_date), sum) %>%
+#   distinct()
+
 
 # ##### NLP
 # library(gutenbergr)

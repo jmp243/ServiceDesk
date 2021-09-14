@@ -77,7 +77,7 @@ glimpse(LiveAgent2)
 LiveA_table <- LiveAgent2 %>% 
   select(starts_with("Time"))
 
-colMeans(LiveA_table, na.rm = TRUE)
+colMeans(LiveA_table, na.rm = TRUE)/60
 
 
 # also examine the ChatReq
@@ -282,16 +282,65 @@ print(Agent_hour)
 # live agent time idle
 LiveAgent2_Idle <- ggplot(LiveAgent2, aes(x=TimeIdle/60, y=tm2.dechr)) + 
   geom_point(aes(y = tm2.dechr, colour = "tm2.dechr")) +
-  geom_point(aes(y = login, colour = "login")) +
+  # geom_point(aes(y = login, colour = "login")) +
   ylab("Hour") +
   xlab("Idle Time (minutes)") + 
-  scale_color_discrete(name="Time", labels=c("Chat Created", "Agent Login Time"))
+  scale_color_discrete(name="Time", labels=c("Chat Created"))
 
 LiveAgent2_Idle <- LiveAgent2_Idle + labs(title = "Idle Time based on Time of Day", 
                                           subtitle = "full data") +
   scale_y_continuous(breaks=seq(0,24,2)) 
 print(LiveAgent2_Idle)
 # scale_color_discrete(name = "Legend")
+
+LiveAgent2_TAC <- ggplot(LiveAgent2, aes(y=tm2.dechr)) + 
+  geom_point(aes(x=TimeIdle/60, y = login, colour = "login")) +
+  geom_point(aes(x=TimeAtCapacity/60, y = tm2.dechr, colour = "tm2.dechr")) +
+  # geom_point(aes(x=TimeInAwayStatus/60, y = login, colour = "")) +
+  ylab("Hour") +
+  xlab("Time (minutes)") + 
+  scale_color_discrete(name="Time", labels=c("At Capacity","Idle"))
+
+LiveAgent2_TAC <- LiveAgent2_TAC + labs(title = "Time at Capacity based on Time of Day", 
+                                          subtitle = "full data") +
+  scale_y_continuous(breaks=seq(0,24,2)) 
+print(LiveAgent2_TAC)
+
+# remove outliers
+outliers4 <- boxplot(LiveAgent2$TimeAtCapacity)$out
+
+TAC_out <- LiveAgent2[-c(which(LiveAgent2$TimeAtCapacity %in% outliers4)),]
+
+Date_Time2 = ymd_hms(TAC_out$CreatedDate)
+
+# t2 <- as.POSIXct(Date_Time2, tz = "GMT")
+# attributes(t2)$tzone
+# AZ_time2 <- lubridate::with_tz(t2, "MST")
+
+# head(AZ_time)
+TAC_out <- dplyr::mutate(TAC_out, AZ_time2)
+
+# convert to decimal time instead of hour_created
+tm2.dechr <- hour(TAC_out$AZ_time2) + minute(TAC_out$AZ_time2)/60 + second(TAC_out$AZ_time2)/3600
+
+TAC_out <- dplyr::mutate(TAC_out, tm2.dechr)
+## graph with outliers removed
+login2 <- hour(TAC_out$AZ_time2) + minute(TAC_out$AZ_time2)/60 + second(TAC_out$AZ_time2)/3600
+
+TAC_out <- dplyr::mutate(TAC_out, login2)
+
+out_TAC <- ggplot(TAC_out, aes(y=tm2.dechr)) + 
+  geom_point(aes(x=TimeIdle/60, y = login2, colour = "login2")) +
+  geom_point(aes(x=TimeAtCapacity/60, y = tm2.dechr, colour = "tm2.dechr")) +
+  # geom_point(aes(x=TimeInAwayStatus/60, y = login, colour = "")) +
+  ylab("Hour") +
+  xlab("Time (minutes)") + 
+  scale_color_discrete(name="Time", labels=c("At Capacity","Time Idle"))
+
+out_TAC <- out_TAC + labs(title = "Time at Capacity or Idle based on Time of Day", 
+                                        subtitle = "full data") +
+  scale_y_continuous(breaks=seq(0,24,2)) 
+print(out_TAC)
 
 # LiveAgent2_Idle
 # ### select data columns first

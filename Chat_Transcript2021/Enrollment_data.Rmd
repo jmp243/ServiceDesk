@@ -16,7 +16,7 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r chat_gpa}
-mod4plot <- ggplot(chat_gpa, aes(x=ChatDuration/60, y = tm1.dechr, fill = DeveloperName)) +
+mod4plot <- ggplot(chat2021, aes(x=ChatDuration/60, y = tm1.dechr, fill = DeveloperName)) +
   stat_density2d(aes(color=DeveloperName), size=.5) +
   # # geom_jitter()+
   # stat_smooth(method = "loess", se = FALSE)
@@ -41,7 +41,7 @@ left_graph <- left_enroll %>%
   coord_flip() +
   labs(x = "", y = "")
 
-left_graph <- left_graph + labs(title = "",
+left_graph <- left_graph + labs(title = "Chat Usage by Students",
                           subtitle = "undergraduate and graduate students")
 
 print(left_graph) # 16 or more is 907 and that is about 40% 
@@ -68,11 +68,12 @@ left_graph2 <- chat_gpa %>%
   drop_na(class_standing) %>% 
   ggplot(aes(x = DeveloperName, fill = class_standing, response = class_standing)) +
   geom_bar() +
-  # coord_flip() +
+  coord_flip() +
   labs(x = "", y = "")
 
 left_graph2 <- left_graph2 + labs(title = "Number of Chats by Unit",
-                          subtitle = "full data noting class standing")
+                          subtitle = "full data noting class standing", 
+                          fill = "Class Standing")
 
 print(left_graph2)
 ```
@@ -83,7 +84,7 @@ chat_gpa %>%
   dplyr::summarize(Mean = mean(ChatDuration, na.rm=TRUE)/60)
 ```
 
-Table of class standing
+Table of class standing per chat usage
 ```{r}
 table(chat_gpa$class_standing)
 ```
@@ -93,9 +94,32 @@ Include tables with grouping counts
 
   table(chat_gpa$DeveloperName, chat_gpa$class_standing)
 ```
+chat times of day for Created Time 
+```{r}
+CreatedDate_out %>%
+  group_by(DeveloperName) %>%
+  dplyr::summarise(Ave_hour = mean(tm1.dechr, na.rm = TRUE)) # outlier removed
+```
+
+data for short enroll 
+```{r}
+table(short_enroll$class_standing)
+```
+```{r}
+slices <- c(17935, 11428, 15709, 22334, 15002)
+lbls <- c("Freshman", "Sophomore",  "Junior", "Senior","Graduate")
+pct <- round(slices/sum(slices)*100, 1)
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # add % to labels
+pie(slices,labels = lbls, col=terrain.colors(length(lbls))) 
+pie(slices,labels = lbls, col=terrain.colors(length(lbls)), 
+     main="Enrollment Make Up of the University")
+
+```
+
 a pie chart
 ```{r}
-slices <- c(3345, 4502, 7106, 11559, 6902)
+slices <- c(3383, 4663, 7351, 11827, 7144)
 lbls <- c("Freshman", "Sophomore",  "Junior", "Senior","Graduate")
 pct <- round(slices/sum(slices)*100, 1)
 lbls <- paste(lbls, pct) # add percents to labels
@@ -105,18 +129,59 @@ pie(slices,labels = lbls, col=terrain.colors(length(lbls)),
      main="Chat Users by Class Standing")
 
 ```
+Make a plotly grapah
+```{r}
+fig <- plot_ly()
+fig <- fig %>% add_pie(data = count(short_enroll, class_standing), labels = ~class_standing, 
+                       values = ~n, name = "enrollment", domain = list(x = c(0, 0.4), 
+                                                                       y = c(0.4, 1)))
+fig <- fig %>% add_pie(data = count(chat_gpa, class_standing), labels = ~class_standing, 
+                       values = ~n, name = "chat", domain = list(x = c(0.6, 1), y = c(0.4, 1)))
+
+fig <- fig %>% layout(title = "Class Standing by Enrollment and Chat Usage", showlegend = T,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+fig
+
+```
+make another plotly graph 
+```{r}
+fig <- plot_ly()
+fig <- fig %>% add_pie(data = count(short_enroll, class_standing), labels = ~class_standing, 
+                       values = ~n, name = "enrollment", domain = list(x = c(0, 0.4), 
+                                                                       y = c(0.4, 1)))
+fig <- fig %>% add_pie(data = count(chat_gpa, class_standing), labels = ~class_standing, 
+                       values = ~n, name = "chat", domain = list(x = c(0.6, 1), y = c(0.4, 1)))
+
+fig <- fig %>% layout(title = "Class Standing by Enrollment and Chat Usage", showlegend = T,
+                      grid=list(rows=0, columns=1),
+                      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                      # legend = list(y = 0.5),
+                      annotations = list(x = c(.27, .72),
+                                         y = c(.42, .42),
+                                         text = c("Enrollment","Chat Usage"),
+                                         # xref = "papper",
+                                         yref = "papper",
+                                         showarrow = F))
+
+fig
+```
 
 make another bar graph
 ```{r}
 ### Graph with counts and percentages with adjusted labels
+### create one recode the lowest 7 into one variable called other, up to 45 variables
+
 Graph5 <- chat_gpa %>% 
-  group_by(class_standing) %>% 
+  group_by(DeveloperName) %>% 
   summarize(count = n()) %>%  # count records by species
   mutate(pct = count/sum(count))
 
 DeployGraph5 <- 
   # drop_na(LiveChatDeployment.DeveloperName) %>% 
-  ggplot(Graph5, aes(class_standing, 
+  ggplot(Graph5, aes(DeveloperName, 
                      count, fill = class_standing)) +
   geom_bar(stat='identity') +
   labs(x = "Class Standing", y = "Number of Chats") +
@@ -129,7 +194,7 @@ DeployGraph5 <-
   # geom_text(aes(label = scales::percent(pct)), vjust = 0.5, nudge_x = -.5) 
 # scale_y_continuous(labels = scales::percent)
 
-DeployGraph5 <- DeployGraph5 + labs(title = "Number of Chats by Class Standing", 
+DeployGraph5 <- DeployGraph5 + labs(title = "Number of Chats by Unit", 
                                     subtitle = "full data",  fill = "Class Standing")
 
 print(DeployGraph5)
@@ -227,12 +292,42 @@ left_enroll_table
                             data.table(.)
 
 left_enroll_table
+
+# reorder columns
+# df.stats.tidy <- left_enroll_table %>% gather(stat, val) %>%
+# separate(stat, into = c("var", "stat"), sep = "_") %>%
+# spread(stat, val) %>%
+# select(var, min, q25, median, q75, max, mean, sd)
+```
+
+psych describe works better
+```{r}
+library(tibble)
+ left_enroll_table <- left_enroll %>% 
+    select(Abandoned, ChatDuration, MaxResponseTimeOperator, MaxResponseTimeVisitor, 
+         OperatorMessageCount,WaitTime, tm1.dechr, Cumulative_GPA__c)
+ 
+d.summary.extended <-  left_enroll_table <- left_enroll %>% 
+    select(Abandoned, ChatDuration, MaxResponseTimeOperator, MaxResponseTimeVisitor, 
+         OperatorMessageCount,WaitTime, tm1.dechr, Cumulative_GPA__c) %>% 
+psych::describe(quant=c(.25,.75)) %>%
+as_tibble() %>%
+rownames_to_column() %>%
+print()
+
+# row.names(left_enroll_table) <- c('Abandoned', 'ChatDuration', 'MaxResponseTimeOperator', 'MaxResponseTimeVisitor','OperatorMessageCount','WaitTime', 'tm1.dechr', 'Cumulative_GPA__c')
+d.summary <- d.summary.extended %>%
+select(var=rowname, min, q25=Q0.25, median, q75=Q0.75, max, mean, sd) %>%
+print()
+
 ```
 
 using the tibble 
 ```{r}
-filteredData <- filter(chat_gpa, WaitTime > 30)
-filteredData
+chat2021 %>% 
+  select(LiveChatDeployment.DeveloperName, AZ_date) %>% 
+         group_by(LiveChatDeployment.DeveloperName) %>% 
+         summarise_all(funs(min, max))
 ```
 
 ## Including Plots
